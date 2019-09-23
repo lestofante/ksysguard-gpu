@@ -1,6 +1,6 @@
 # ksysguard-gpu
-Add gpu visualization for ksysguard.  
-For now, only AMD card with radeontop are supported, see https://github.com/clbr/radeontop for more info. 
+Add GPU status visualization for ksysguard.  
+For now, AMD card with [radeontop](https://github.com/clbr/radeontop) and Intel card with [intel-gpu-tools](https://cgit.freedesktop.org/xorg/app/intel-gpu-tools/) are supported.  
 
 ![Example](Result.png?raw=true "example")
 
@@ -30,7 +30,7 @@ All value are % because was easier to code, deal with it.
 
 ## suggestion
 
-IMHO The most meaninful (the one in the screenshot) are:
+IMHO The most meaninful (the one in the screenshot with AMD only) are:
 
 - gpu: estimation of the GPU usage
 
@@ -38,3 +38,7 @@ IMHO The most meaninful (the one in the screenshot) are:
 
 - mclk: memory clock
 - sclk: shader clock
+
+## multiple GPU support
+
+radeontop is able to identify multiple GPU, by their bus number. intel-gpu-tools looks like can't do that, so if you want multiple Intel GPU will not work.. But if you take a dump of the output of `intel_gpu_top  -l` I'll see if I feel I want implement it.
