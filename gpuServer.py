@@ -10,6 +10,40 @@ import time
 allGpu = dict()
 mutex = threading.Lock()
 
+def parseLineIntel(line):
+	global allGpu, mutex
+	line=str(line)
+	line = line[2:-3]
+	
+	parameters = [s for s in line.split(' ') if s]
+	
+	if not parameters[0].isdigit():
+		#print('ignored: ', parameters[0])
+		return
+	
+	indexNames = ['fReq', 'fAtt', 'irq/s', 'rc6%', 'Watt', 'rcs%', 'rcsSe', 'rcsWa', 'bcs%', 'bcsSe', 'bcsWa', 'vcs%', 'vcsSe', 'vcsWa', 'vecs%', 'vecsSe', 'vecsWa']
+	if len(parameters) != len(indexNames):
+		return
+	
+	gpuName = "Intel"
+	mutex.acquire()
+	try:
+		for index, parameter in enumerate(parameters):
+			allGpu[gpuName+"."+indexNames[index]] = parameter
+			#print('intel got ', indexNames[index], ' as ', parameter)
+	finally:
+		mutex.release()
+
+
+def runInteltop():
+	exe = ["intel_gpu_top", "-l"]
+	
+	p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	while p.poll() is None:
+		line = p.stdout.readline()
+		parseLineIntel(line)
+	print('intel_gpu_top process has died! probably is not installed, or need root')
+
 def parseLine(line):
 	global allGpu, mutex
 	line=str(line)
@@ -37,15 +71,16 @@ def parseLine(line):
 
 def runRadeontop():
 	exe = ["radeontop", "-t120", "-d-"]
-	while True:
-		p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-		while p.poll() is None:
-			line = p.stdout.readline()
-			parseLine(line)
-		print('radeontop process has died! this should not happen')
-		time.sleep(5)
+	p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	while p.poll() is None:
+		line = p.stdout.readline()
+		parseLine(line)
+	print('radeontop process has died! probably is not installed, or need root')
 
 t = threading.Thread(target=runRadeontop)
+t.start()
+
+t = threading.Thread(target=runInteltop)
 t.start()
 
 #just mutex lol
