@@ -14,10 +14,10 @@ Also the script will use your TCP port 3112, so you could also use it to check o
 * If it require root, also check your user is part of the "video" group or whatever "ls -la /dev/dri/card0" returns.
 * run the script gpuServer.py, with root/sudo if needed
 * start ksysguard
-* File -> Monitor remote machine, in the windows that will appeat sewt the following:
-** Host: 127.0.0.1
-** Connection type: daemon
-** port: 3112
+* File -> Monitor remote machine, in the windows that will appeat sewt the following:  
+** Host: 127.0.0.1  
+** Connection type: daemon  
+** Port: 3112  
 * click ok
 
 ![Monitor remote machine in all its glory](Connect%20Host.png?raw=true "Monitor remote machine")
