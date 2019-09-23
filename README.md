@@ -1,6 +1,7 @@
 # ksysguard-gpu
 Add GPU status visualization for ksysguard.  
 For now, AMD card with [radeontop](https://github.com/clbr/radeontop) and Intel card with [intel-gpu-tools](https://cgit.freedesktop.org/xorg/app/intel-gpu-tools/) are supported.  
+Scroll down after the screenshot to see how to set up.  
 
 ![Example](images/Result.png?raw=true "example")
 ![Example](images/gpu%20slacking.png?raw=true "example")
