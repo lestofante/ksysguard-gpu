@@ -130,7 +130,6 @@ def parseCommand(line):
 	finally:
 		mutex.release()
 
-	print ('request "%s" answer %s' % (line, answer))
 	answer += 'ksysguardd> '
 	return answer
 
@@ -155,7 +154,6 @@ try:
 				data = s.recv(1024)
 				if data:
 					data = data.decode("utf-8", "strict")
-					print ('received "%s" from %s' % (data, s.getpeername()))
 					message_queues[s] += data
 					lines = message_queues[s].split('\n')
 					linesNumber = len(lines)
@@ -165,7 +163,7 @@ try:
 					message_queues[s] = lines[linesNumber-1]
 				else:
 					# Interpret empty result as closed connection
-					print ('closing', client_address, 'after reading no data')
+					print ('client disconnected: ', client_address)
 					# Stop listening for input on the connection
 					inputs.remove(s)
 					s.close()
