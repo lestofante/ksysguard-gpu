@@ -3,7 +3,7 @@ Add GPU status visualization for ksysguard.
 For now, AMD card with [radeontop](https://github.com/clbr/radeontop) and Intel card with [intel-gpu-tools](https://cgit.freedesktop.org/xorg/app/intel-gpu-tools/) are supported.  
 
 ![Example](images/Result.png?raw=true "example")
-![Example](images/gpu%20slacking.png.png?raw=true "example")
+![Example](images/gpu%20slacking.png?raw=true "example")
 
 ## dependency
 You need to have installed radeontop and python3 (I used 3.7), and of course ksysguard.  
