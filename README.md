@@ -2,7 +2,8 @@
 Add GPU status visualization for ksysguard.  
 For now, AMD card with [radeontop](https://github.com/clbr/radeontop) and Intel card with [intel-gpu-tools](https://cgit.freedesktop.org/xorg/app/intel-gpu-tools/) are supported.  
 
-![Example](Result.png?raw=true "example")
+![Example](images/Result.png?raw=true "example")
+![Example](images/gpu%20slacking.png.png?raw=true "example")
 
 ## dependency
 You need to have installed radeontop and python3 (I used 3.7), and of course ksysguard.  
@@ -20,13 +21,13 @@ Also the script will use your TCP port 3112, so you could also use it to check o
 ** Port: 3112  
 * click ok
 
-![Monitor remote machine in all its glory](Connect%20Host.png?raw=true "Monitor remote machine")
+![Monitor remote machine in all its glory](images/Connect%20Host.png?raw=true "Monitor remote machine")
 
 Now if you open a new tab, in the sensor browser, you should see a new voice 127.0.0.1 with all the sensor available.  
 You will notice the bus number is incuded; yep, it will work if you have multiple GPU!  
 All value are % because was easier to code, deal with it.  
 
-![The list of the sensors](Sensors%20List.png?raw=true "Sensor list example")
+![The list of the sensors](images/Sensors%20List.png?raw=true "Sensor list example")
 
 ## suggestion
 
