@@ -1,16 +1,30 @@
 # ksysguard-gpu
 Add GPU status visualization for ksysguard.  
-For now, AMD card with [radeontop](https://github.com/clbr/radeontop) and Intel card with [intel-gpu-tools](https://cgit.freedesktop.org/xorg/app/intel-gpu-tools/) are supported.  
-Scroll down after the screenshot to see how to set up.  
 
-![Example](images/Result.png?raw=true "example")
-![Example](images/gpu%20slacking.png?raw=true "example")
+##### Table of Contents  
+- [screnshoot](#screnshoot)
+- [supported GPU](#supported-gpu)
+- [installation](#installation)
+- [script setup](#script-setup)
+- [example tab](#example-tab)
+- [troubleshooting](#troubleshooting)
+- [suggestion](#suggestion)
+- [multiple GPU support](#multiple-gpu-support)
+
+## screnshoot
+![Example amd](images/Result.png?raw=true "example")
+![Example amd and intel](images/gpu%20slacking.png?raw=true "example")
+
+## supported GPU
+AMD card are supported with [radeontop](https://github.com/clbr/radeontop)
+Intel card are supported with [intel-gpu-tools](https://cgit.freedesktop.org/xorg/app/intel-gpu-tools/)  
+Test those program as I had varing degree of luck on model of GPU supported and what data is exposed.  
 
 ## dependency
 You need to have installed radeontop and python3 (I used 3.7), and of course ksysguard.  
 Also the script will use your TCP port 3112, so you could also use it to check on remote machines, as long as you know to set up the classic firewall/nat rules.
 
-## setup
+## installation
 cd ksysguard-gpu
 * ./install.sh
 * start ksysguard
@@ -20,7 +34,11 @@ cd ksysguard-gpu
 ** Port: 3112  
 * click ok
 
-## Trouble shooting
+## example tab
+In the folder `tab` you can find the some example tab that can be imported into ksysguard.
+Unfortunately there seems to be great difference between the data exposed by different GPU model; so you may still need to tweak here and there.
+
+## troubleshooting
 * try to run radeontop, if it works, great, close it. 
 * If it does not, fix it. 
 * If it require root, also check your user is part of the "video" group or whatever "ls -la /dev/dri/card0" returns.
