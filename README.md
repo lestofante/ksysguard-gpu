@@ -4,8 +4,8 @@ Add GPU status visualization for ksysguard.
 ##### Table of Contents  
 - [screnshoot](#screnshoot)
 - [supported GPU](#supported-gpu)
+- [dependency](#dependency)
 - [installation](#installation)
-- [script setup](#script-setup)
 - [example tab](#example-tab)
 - [troubleshooting](#troubleshooting)
 - [suggestion](#suggestion)
