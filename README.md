@@ -11,6 +11,7 @@ You need to have installed radeontop and python3 (I used 3.7), and of course ksy
 Also the script will use your TCP port 3112, so you could also use it to check on remote machines, as long as you know to set up the classic firewall/nat rules.
 
 ## setup
+cd ksysguard-gpu
 * ./install.sh
 * start ksysguard
 * File -> Monitor remote machine, in the windows that will appear you will see the following:  
