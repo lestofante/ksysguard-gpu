@@ -1,0 +1,11 @@
+[Unit]
+Description=Collect GPU stats
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/gpuStatsServer.py
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
+
