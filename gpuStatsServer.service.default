@@ -2,8 +2,7 @@
 Description=Collect GPU stats
 
 [Service]
-User=root
-ExecStart=python3 /usr/bin/gpuStatsServer
+ExecStart=python3 /script/location/gpuStatsServer.py
 Restart=on-failure
 
 [Install]

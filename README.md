@@ -11,16 +11,20 @@ You need to have installed radeontop and python3 (I used 3.7), and of course ksy
 Also the script will use your TCP port 3112, so you could also use it to check on remote machines, as long as you know to set up the classic firewall/nat rules.
 
 ## setup
+* ./install.sh
+* start ksysguard
+* File -> Monitor remote machine, in the windows that will appear you will see the following:  
+** Host: 127.0.0.1  
+** Connection type: daemon  
+** Port: 3112  
+* click ok
+
+## Trouble shooting
 * try to run radeontop, if it works, great, close it. 
 * If it does not, fix it. 
 * If it require root, also check your user is part of the "video" group or whatever "ls -la /dev/dri/card0" returns.
 * run the script gpuServer.py, with root/sudo if needed
 * start ksysguard
-* File -> Monitor remote machine, in the windows that will appeat sewt the following:  
-** Host: 127.0.0.1  
-** Connection type: daemon  
-** Port: 3112  
-* click ok
 
 ![Monitor remote machine in all its glory](images/Connect%20Host.png?raw=true "Monitor remote machine")
 
