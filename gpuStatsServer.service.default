@@ -3,7 +3,7 @@ Description=Collect GPU stats
 After=network.target
 
 [Service]
-ExecStart=python3 /usr/bin/gpuStatsServer.py
+ExecStart=/usr/bin/gpuStatsServer.py
 Restart=on-failure
 
 [Install]
