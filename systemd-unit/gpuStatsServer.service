@@ -1,0 +1,10 @@
+[Unit]
+Description=Collect GPU stats
+After=network.target
+
+[Service]
+ExecStart=python3 /script/location/gpuStatsServer.py
+Restart=on-failure
+
+[Install]
+WantedBy=default.target 

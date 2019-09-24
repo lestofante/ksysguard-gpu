@@ -1,86 +1,123 @@
 #!/bin/python3
 
+import subprocess
+
+####################################################
+
+class Intel:
+	def __init__(self, allGpu, mutex):
+		self.allGpu = allGpu
+		self.mutex = mutex
+	
+	def parseLine(self, line):
+		line=str(line)
+		line = line[2:-3]
+		
+		parameters = [s for s in line.split(' ') if s]
+		
+		if not parameters[0].isdigit():
+			#print('ignored: ', parameters[0])
+			return
+		
+		indexNames = ['fReq', 'fAtt', 'irq/s', 'rc6%', 'Watt', 'rcs%', 'rcsSe', 'rcsWa', 'bcs%', 'bcsSe', 'bcsWa', 'vcs%', 'vcsSe', 'vcsWa', 'vecs%', 'vecsSe', 'vecsWa']
+		if len(parameters) != len(indexNames):
+			return
+		
+		gpuName = "Intel"
+		self.mutex.acquire()
+		try:
+			for index, parameter in enumerate(parameters):
+				self.allGpu[gpuName+"."+indexNames[index]] = parameter
+				#print('intel got ', indexNames[index], ' as ', parameter)
+		finally:
+			self.mutex.release()
+
+
+	def run(self):
+		exe = ["intel_gpu_top", "-l"]
+		try:
+			p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+			while p.poll() is None:
+				line = p.stdout.readline()
+				self.parseLine(line)
+		except:
+			print('intel_gpu_top process has died! probably is not installed, or need root')
+
+####################################################
+
+class Amd:
+	def __init__(self, allGpu, mutex):
+		self.allGpu = allGpu
+		self.mutex = mutex
+
+	def parseLine(self, line):
+		line=str(line)
+		
+		line = line[18:-1] #remove timestamp and \n
+		parameters = line.split(',')
+		gpuName = None
+		self.mutex.acquire()
+		try:
+			for parameter in parameters:
+				keyValue = parameter.split(' ')
+				
+				if len(keyValue) < 3:
+					continue
+				
+				if keyValue[1] == "bus":
+					gpuName = 'bus'+keyValue[2]
+					self.allGpu[gpuName+"."+keyValue[1]] = keyValue[2]
+
+				if keyValue[2][-1:] == "%":
+					self.allGpu[gpuName+"."+keyValue[1]] = keyValue[2][:-4] #remove . and %
+		finally:
+			self.mutex.release()
+
+
+	def run(self):
+		exe = ["radeontop", "-t120", "-d-"]
+		try:
+			p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+			while p.poll() is None:
+				line = p.stdout.readline()
+				self.parseLine(line)
+		except:
+			print('radeontop process has died! probably is not installed, or need root')
+
+
+####################################################
+
+class Nvidia:
+	def __init__(self, allGpu, mutex):
+		self.allGpu = allGpu
+		self.mutex = mutex
+
+	def run(self):
+		print('nvidia-smi is not currently supported')
+
+####################################################
+#                      MAIN                        #
+####################################################
 import select
 import socket
 import sys
 import threading
-import subprocess
 import time
 
-allGpu = dict()
+allGpu = {}
 mutex = threading.Lock()
 
-def parseLineIntel(line):
-	global allGpu, mutex
-	line=str(line)
-	line = line[2:-3]
-	
-	parameters = [s for s in line.split(' ') if s]
-	
-	if not parameters[0].isdigit():
-		#print('ignored: ', parameters[0])
-		return
-	
-	indexNames = ['fReq', 'fAtt', 'irq/s', 'rc6%', 'Watt', 'rcs%', 'rcsSe', 'rcsWa', 'bcs%', 'bcsSe', 'bcsWa', 'vcs%', 'vcsSe', 'vcsWa', 'vecs%', 'vecsSe', 'vecsWa']
-	if len(parameters) != len(indexNames):
-		return
-	
-	gpuName = "Intel"
-	mutex.acquire()
-	try:
-		for index, parameter in enumerate(parameters):
-			allGpu[gpuName+"."+indexNames[index]] = parameter
-			#print('intel got ', indexNames[index], ' as ', parameter)
-	finally:
-		mutex.release()
+parserIntel = Intel(allGpu, mutex)
+parserAmd = Amd(allGpu, mutex)
+parserNvidia = Nvidia(allGpu, mutex)
 
-
-def runInteltop():
-	exe = ["intel_gpu_top", "-l"]
-	
-	p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-	while p.poll() is None:
-		line = p.stdout.readline()
-		parseLineIntel(line)
-	print('intel_gpu_top process has died! probably is not installed, or need root')
-
-def parseLine(line):
-	global allGpu, mutex
-	line=str(line)
-	
-	line = line[18:-1] #remove timestamp and \n
-	parameters = line.split(',')
-	gpuName = None
-	mutex.acquire()
-	try:
-		for parameter in parameters:
-			keyValue = parameter.split(' ')
-			
-			if len(keyValue) < 3:
-				continue
-			
-			if keyValue[1] == "bus":
-				gpuName = 'bus'+keyValue[2]
-				allGpu[gpuName+"."+keyValue[1]] = keyValue[2]
-
-			if keyValue[2][-1:] == "%":
-				allGpu[gpuName+"."+keyValue[1]] = keyValue[2][:-4] #remove . and %
-	finally:
-		mutex.release()
-
-
-def runRadeontop():
-	exe = ["radeontop", "-t120", "-d-"]
-	p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-	while p.poll() is None:
-		line = p.stdout.readline()
-		parseLine(line)
-	print('radeontop process has died! probably is not installed, or need root')
-
-t = threading.Thread(target=runRadeontop)
+t = threading.Thread(target=parserAmd.run)
 t.start()
 
-t = threading.Thread(target=runInteltop)
+t = threading.Thread(target=parserIntel.run)
+t.start()
+
+t = threading.Thread(target=parserNvidia.run)
 t.start()
 
 #just mutex lol
@@ -108,7 +145,6 @@ server.listen(5)
 inputs = [ server ]
 
 message_queues = {}
-
 
 def parseCommand(line):
 	line=line.strip()
@@ -172,3 +208,4 @@ try:
 finally:
 	server.close()
 	print("server closed")
+

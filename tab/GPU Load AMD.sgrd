@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE KSysGuardWorkSheet>
+<WorkSheet rows="3" title="GPU Load" columns="1" locked="0" interval="0.5">
+ <display unit="" hLines="1" fontSize="8" vScroll="0" row="2" vDistance="30" manualRange="0" stacked="0" rowSpan="1" svgBackground="" autoRange="1" columnSpan="1" version="1" showUnit="0" column="0" labels="1" class="FancyPlotter" vLines="0" hScale="6" title="GPU Clock speed %">
+  <beam color="0xff0057ae" sensorName="bus*.mclk" sensorType="integer" hostName="127.0.0.1"/>
+  <beam color="0xffe20800" sensorName="bus*.sclk" sensorType="integer" hostName="127.0.0.1"/>
+ </display>
+ <display unit="" hLines="1" fontSize="8" vScroll="0" row="1" vDistance="30" manualRange="0" stacked="0" rowSpan="1" svgBackground="" autoRange="1" columnSpan="1" version="1" showUnit="0" column="0" labels="1" class="FancyPlotter" vLines="0" hScale="6" title="GPU RAM usage %">
+  <beam color="0xffe20800" sensorName="bus*.vram" sensorType="integer" hostName="127.0.0.1"/>
+ </display>
+ <display unit="" hLines="1" fontSize="8" vScroll="0" row="0" vDistance="30" manualRange="0" stacked="0" rowSpan="1" svgBackground="" autoRange="1" columnSpan="1" version="1" showUnit="0" column="0" labels="1" class="FancyPlotter" vLines="0" hScale="6" title="GPU usage %">
+  <beam color="0xffe20800" sensorName="bus*.gpu" sensorType="integer" hostName="127.0.0.1"/>
+ </display>
+</WorkSheet>
