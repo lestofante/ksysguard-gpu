@@ -1,6 +1,8 @@
 #!/bin/sh
 
 SCRIPTLOCATION="`pwd`/gpuStatsServer.py"
+echo "Making build dir"
+mkdir ./build
 echo "Updateing `pwd`/gpuStatsServer.py as location of script for gpuStatsServer.service"
 sed "s,/script/location/gpuStatsServer.py,${SCRIPTLOCATION},g" ./gpuStatsServer.service.default > ./build/gpuStatsServer.service
 echo "Creating sym link to gpuStatsServer.service in ${HOME}/.config/systemd/user/"
