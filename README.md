@@ -16,7 +16,7 @@ Add GPU status visualization for ksysguard.
 ![Example amd and intel](images/gpu%20slacking.png?raw=true "example")
 
 ## supported GPU
-AMD card are supported with [radeontop](https://github.com/clbr/radeontop)
+AMD card are supported with [radeontop](https://github.com/clbr/radeontop)  
 Intel card are supported with [intel-gpu-tools](https://cgit.freedesktop.org/xorg/app/intel-gpu-tools/)  
 Nvidia card are supported with [nvidia-smi](https://developer.nvidia.com/nvidia-system-management-interface)  
 Test those program as I had varing degree of luck on model of GPU supported and what data is exposed.  
