@@ -120,7 +120,7 @@ class Amd:
 
 
 	def run(self):
-		exe = ["radeontop", "-t120", "-d-"]
+		exe = ["radeontop", "-d-"]
 		try:
 			self.p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 			while self.p.poll() is None:
