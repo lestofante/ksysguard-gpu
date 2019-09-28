@@ -66,8 +66,9 @@ class Intel:
 				line = p.stdout.readline()
 				self.parseLine(line)
 		except:
-			print('intel_gpu_top process has died! probably is not installed, or need root')
 			traceback.print_exc()
+		finally:
+			print('intel_gpu_top process has died! probably is not installed, or need root')
 
 ####################################################
 
@@ -108,8 +109,9 @@ class Amd:
 				line = p.stdout.readline()
 				self.parseLine(line)
 		except:
-			print('radeontop process has died! probably is not installed, or need root')
 			traceback.print_exc()
+		finally:
+			print('radeontop process has died! probably is not installed, or need root')
 
 
 ####################################################
@@ -151,8 +153,9 @@ class Nvidia:
 				line = p.stdout.readline()
 				self.parseLine(line)
 		except:
-			print('nvidia-smi process has died! probably is not installed, or need root')
 			traceback.print_exc()
+		finally:
+			print('nvidia-smi process has died! probably is not installed, or need root')
 
 ####################################################
 #                      MAIN                        #
