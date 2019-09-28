@@ -10,6 +10,12 @@ class Intel:
 		self.allGpu = allGpu
 		self.mutex = mutex
 		self.header = []
+		
+	def close(self):
+		try:
+			self.p.kill()
+		except:
+			pass
 	
 	def extrapolate(self, parameters):
 		for p in parameters:
@@ -61,9 +67,9 @@ class Intel:
 	def run(self):
 		exe = ["intel_gpu_top", "-l"]
 		try:
-			p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-			while p.poll() is None:
-				line = p.stdout.readline()
+			self.p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+			while self.p.poll() is None:
+				line = self.p.stdout.readline()
 				self.parseLine(line)
 		except:
 			traceback.print_exc()
@@ -76,6 +82,12 @@ class Amd:
 	def __init__(self, allGpu, mutex):
 		self.allGpu = allGpu
 		self.mutex = mutex
+	
+	def close(self):
+		try:
+			self.p.kill()
+		except:
+			pass
 
 	def parseLine(self, line):
 		line=str(line)
@@ -104,9 +116,9 @@ class Amd:
 	def run(self):
 		exe = ["radeontop", "-t120", "-d-"]
 		try:
-			p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-			while p.poll() is None:
-				line = p.stdout.readline()
+			self.p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+			while self.p.poll() is None:
+				line = self.p.stdout.readline()
 				self.parseLine(line)
 		except:
 			traceback.print_exc()
@@ -120,6 +132,12 @@ class Nvidia:
 	def __init__(self, allGpu, mutex):
 		self.allGpu = allGpu
 		self.mutex = mutex
+		
+	def close(self):
+		try:
+			self.p.kill()
+		except:
+			pass
 
 	def parseLine(self, line):
 		line=str(line)
@@ -147,10 +165,10 @@ class Nvidia:
 	def run(self):
 		exe = ["nvidia-smi", "--query-gpu=index,temperature.gpu,utilization.gpu,utilization.memory,pstate,power.draw,clocks.sm,clocks.mem,clocks.gr", "--format=csv", '-l1']
 		try:
-			p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+			self.p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 			print('WARNING: NVIDIA is untested.')
-			while p.poll() is None:
-				line = p.stdout.readline()
+			while self.p.poll() is None:
+				line = self.p.stdout.readline()
 				self.parseLine(line)
 		except:
 			traceback.print_exc()
@@ -160,6 +178,28 @@ class Nvidia:
 ####################################################
 #                      MAIN                        #
 ####################################################
+
+def parseCommand(line, mutex):
+	line=line.strip()
+	answer = ""
+	mutex.acquire()
+	try:
+		if line == 'monitors':
+			for key in allGpu.keys():
+				answer += key+'\tinteger\n'
+		elif line[-1:] == '?':
+			answer += (line[:-1]+'\t0\t100\n')
+		else:
+			answerValue = allGpu.get(line, -1)
+			answer += (str(answerValue)+'\n')
+	except:
+		pass
+	finally:
+		mutex.release()
+
+	answer += 'ksysguardd> '
+	return answer
+
 import select
 import socket
 import sys
@@ -173,65 +213,47 @@ parserIntel = Intel(allGpu, mutex)
 parserAmd = Amd(allGpu, mutex)
 parserNvidia = Nvidia(allGpu, mutex)
 
-t = threading.Thread(target=parserAmd.run)
-t.start()
+t1 = threading.Thread(target=parserAmd.run)
+t1.start()
 
-t = threading.Thread(target=parserIntel.run)
-t.start()
+t2 = threading.Thread(target=parserIntel.run)
+t2.start()
 
-t = threading.Thread(target=parserNvidia.run)
-t.start()
+t3 = threading.Thread(target=parserNvidia.run)
+t3.start()
 
 #just mutex lol
 mutex.acquire()
-while len(allGpu) == 0:
+while len(allGpu) == 0 and (t1.isAlive() or t2.isAlive() or t3.isAlive()):
 	mutex.release()
 	time.sleep(0.5)
 	mutex.acquire()
 mutex.release()
+
+if not t1.isAlive() and not t2.isAlive() and not t3.isAlive():
+	print("No data source is alive")
+	exit (-1)
 
 # Create a TCP/IP socket
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 server.setblocking(0)
 
-# Bind the socket to the port
-server_address = ('localhost', 3112)
-print ('starting up on %s port %s' % server_address)
-server.bind(server_address)
-
-# Listen for incoming connections
-server.listen(5) 
-
-# Sockets from which we expect to read
-inputs = [ server ]
-
-message_queues = {}
-
-def parseCommand(line):
-	line=line.strip()
-	answer = ""
-	mutex.acquire()
-	try:
-		if line == 'monitors':
-			for key in allGpu.keys():
-				answer += key+'\tinteger\n'
-		elif line[-1:] == '?':
-			answer += (line[:-1]+'\t0\t100\n')
-		else:
-			answerValue = allGpu.get(line)
-			if answerValue is None:
-				answerValue = 0
-			answer += (str(answerValue)+'\n')
-	except:
-		pass
-	finally:
-		mutex.release()
-
-	answer += 'ksysguardd> '
-	return answer
-
 try:
+	# Bind the socket to the port
+	server_address = ('localhost', 3112)
+	print ('starting up on %s port %s' % server_address)
+	server.bind(server_address)
+
+	# Listen for incoming connections
+	server.listen(5) 
+
+	# Sockets from which we expect to read
+	inputs = [ server ]
+
+	message_queues = {}
+
+
 	while inputs:
 		# Wait for at least one of the sockets to be ready for processing
 		readable, writable, exceptional = select.select(inputs, [], [])
@@ -256,7 +278,7 @@ try:
 					lines = message_queues[s].split('\n')
 					linesNumber = len(lines)
 					for i in range(0, linesNumber-1):
-						answer = parseCommand(lines[i])
+						answer = parseCommand(lines[i], mutex)
 						s.send(answer.encode('utf-8'))
 					message_queues[s] = lines[linesNumber-1]
 				else:
@@ -268,6 +290,10 @@ try:
 					# Remove message queue
 					del message_queues[s]
 finally:
-	server.close()
 	print("server closed")
+	server.close()
+	parserIntel.close()
+	parserAmd.close()
+	parserNvidia.close()
+	
 
