@@ -91,8 +91,8 @@ class Amd:
 
 	def parseLine(self, line):
 		line=str(line)
+		line = line[20:-3] #remove b'timestamp and \n'
 		
-		line = line[18:-1] #remove timestamp and \n
 		parameters = line.split(',')
 		gpuName = None
 		self.mutex.acquire()
@@ -107,8 +107,14 @@ class Amd:
 					gpuName = 'AMD.'+keyValue[2]
 					self.allGpu[gpuName+"."+keyValue[1]] = keyValue[2]
 
-				if keyValue[2][-1:] == "%":
-					self.allGpu[gpuName+"."+keyValue[1]] = keyValue[2][:-4] #remove . and %
+				else:
+					for val in keyValue:
+						if val[-1:] == "%":
+							self.allGpu[gpuName+"."+keyValue[1]+'.%'] = val[:-1] #remove . and %
+						elif val[-2:] == "mb":
+							self.allGpu[gpuName+"."+keyValue[1]+'.mb'] = val[:-2] #remove . and mb
+						elif val[-3:] == "ghz":
+							self.allGpu[gpuName+"."+keyValue[1]+'.ghz'] = val[:-3] #remove . and mb
 		finally:
 			self.mutex.release()
 
