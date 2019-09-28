@@ -3,10 +3,11 @@
 <WorkSheet title="GPU" locked="0" rows="3" interval="0.5" columns="2">
  <host command="" port="3112" shell="" name="127.0.0.1"/>
  <display vLines="0" title="Radeon Usage" vScroll="0" showUnit="0" column="0" stacked="0" hScale="6" hLines="1" columnSpan="1" class="FancyPlotter" labels="1" row="0" unit="" autoRange="1" rowSpan="1" svgBackground="" manualRange="0" vDistance="30" fontSize="8" version="1">
-  <beam sensorType="integer" color="0xffe20800" regexpSensorName="AMD\..*\.gpu" hostName="127.0.0.1"/>
+  <beam sensorType="integer" color="0xffe20800" regexpSensorName="AMD\..*\.gpu\.%" hostName="127.0.0.1"/>
  </display>
  <display vLines="0" title="Radeon Ram" vScroll="0" showUnit="0" column="0" stacked="0" hScale="6" hLines="1" columnSpan="1" class="FancyPlotter" labels="1" row="1" unit="" autoRange="1" rowSpan="1" svgBackground="" manualRange="0" vDistance="30" fontSize="8" version="1">
-  <beam sensorType="integer" color="0xffe20800" regexpSensorName="AMD\..*\.vram" hostName="127.0.0.1"/>
+  <beam sensorType="integer" color="0xffe20800" regexpSensorName="AMD\..*\.vram\.mb" hostName="127.0.0.1"/>
+  <beam sensorType="integer" color="0xff0057ae" regexpSensorName="AMD\..*\.vram\.%" hostName="127.0.0.1"/>
  </display>
  <display vLines="0" title="Intel Clock" vScroll="0" showUnit="0" column="1" stacked="0" hScale="6" hLines="1" columnSpan="1" class="FancyPlotter" labels="1" row="2" unit="" autoRange="1" rowSpan="1" svgBackground="" manualRange="0" vDistance="30" fontSize="8" version="1">
   <beam sensorType="integer" color="0xfff3c300" sensorName="Intel.0.fAtt" hostName="127.0.0.1"/>
@@ -21,9 +22,9 @@
   <beam sensorType="integer" color="0xff28a929" sensorName="Intel.0.VECS.%" hostName="127.0.0.1"/>
  </display>
  <display vLines="0" title="Radeon Engines" vScroll="0" showUnit="0" column="0" stacked="0" hScale="6" hLines="1" columnSpan="1" class="FancyPlotter" labels="1" row="2" unit="" autoRange="1" rowSpan="1" svgBackground="" manualRange="0" vDistance="30" fontSize="8" version="1">
-  <beam sensorType="integer" color="0xff0057ae" regexpSensorName="AMD\..*\.ee" hostName="127.0.0.1"/>
-  <beam sensorType="integer" color="0xffe20800" regexpSensorName="AMD\..*\.vgt" hostName="127.0.0.1"/>
-  <beam sensorType="integer" color="0xfff3c300" regexpSensorName="AMD\..*\.ta" hostName="127.0.0.1"/>
-  <beam sensorType="integer" color="0xffff0000" regexpSensorName="AMD\..*\.sh" hostName="127.0.0.1"/>
+  <beam sensorType="integer" color="0xff0057ae" regexpSensorName="AMD\..*\.ee\.%" hostName="127.0.0.1"/>
+  <beam sensorType="integer" color="0xffe20800" regexpSensorName="AMD\..*\.vgt\.%" hostName="127.0.0.1"/>
+  <beam sensorType="integer" color="0xfff3c300" regexpSensorName="AMD\..*\.ta\.%" hostName="127.0.0.1"/>
+  <beam sensorType="integer" color="0xffff0000" regexpSensorName="AMD\..*\.sh\.%" hostName="127.0.0.1"/>
  </display>
 </WorkSheet>
