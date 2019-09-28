@@ -18,6 +18,7 @@ Add GPU status visualization for ksysguard.
 ## supported GPU
 AMD card are supported with [radeontop](https://github.com/clbr/radeontop)
 Intel card are supported with [intel-gpu-tools](https://cgit.freedesktop.org/xorg/app/intel-gpu-tools/)  
+Nvidia card are supported with [nvidia-smi](https://developer.nvidia.com/nvidia-system-management-interface)  
 Test those program as I had varing degree of luck on model of GPU supported and what data is exposed.  
 
 ## dependency
@@ -66,4 +67,5 @@ IMHO The most meaninful (the one in the screenshot with AMD only) are:
 
 ## multiple GPU support
 
-radeontop is able to identify multiple GPU, by their bus number. intel-gpu-tools looks like can't do that, so if you want multiple Intel GPU will not work.. But if you take a dump of the output of `intel_gpu_top  -l` I'll see if I feel I want implement it.
+radeontop and nvidia-smi are able to identify multiple GPU.  
+intel-gpu-tools looks like can't do that, so if you want multiple Intel GPU will not work.. But if you take a dump of the output of `intel_gpu_top  -l` I'll see if I feel I want implement it.
