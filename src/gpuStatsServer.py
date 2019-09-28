@@ -1,4 +1,4 @@
-#!/bin/python3 -U
+#!/bin/python3 -u
 
 import subprocess
 import traceback
@@ -16,19 +16,19 @@ class Intel:
 			if p == 'Freq':
 				self.header += ['fReq', 'fAtt']
 			
-			if p = 'IRQ':
+			if p == 'IRQ':
 				self.header += ['irq/s']
 			
-			if p = 'RC':
+			if p == 'RC':
 				self.header += ['rc6%']
 			
-			if p = 'Power':
+			if p == 'Power':
 				self.header += ['Watt']
 			
-			if p = 'IMC':
+			if p == 'IMC':
 				self.header += [' rd', 'wr']
 				
-			if p[-2:] = '/0':
+			if p[-2:] == '/0':
 				name = p[:-2]
 				self.header += [name+'%', name+'_se', name+'_wa']
 	
