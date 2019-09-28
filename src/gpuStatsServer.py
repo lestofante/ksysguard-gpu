@@ -19,8 +19,8 @@ class Intel:
 			if p == 'IRQ':
 				self.header += ['irq/s']
 			
-			if p == 'RC':
-				self.header += ['rc6%']
+			if p == 'RC6':
+				self.header += ['rc6.%']
 			
 			if p == 'Power':
 				self.header += ['Watt']
@@ -30,7 +30,7 @@ class Intel:
 				
 			if p[-2:] == '/0':
 				name = p[:-2]
-				self.header += [name+'%', name+'_se', name+'_wa']
+				self.header += [name+'.%', name+'.se', name+'.wa']
 	
 	def parseLine(self, line):
 		line=str(line)
@@ -40,16 +40,16 @@ class Intel:
 		
 		if not parameters[0].isdigit():
 			if len(self.header) == 0:
-				extrapolate(parameters)
-				print("Intel parse extrapolated header list: " + self.header)
+				self.extrapolate(parameters)
+				print("Intel parse extrapolated header list: " + str(self.header))
 			#print('ignored: ', parameters[0])
 			return
 
 		if len(parameters) != len(self.header):
-			print( "Intel parse line error: I am expecting " + len(indexNames) + " parameter but I got " + len(parameters) )
+			print( "Intel parse line error: I am expecting " + str(len(indexNames)) + " parameter but I got " + str(len(parameters)) )
 			return
 		
-		gpuName = "Intel"
+		gpuName = "Intel.0"
 		self.mutex.acquire()
 		try:
 			for index, parameter in enumerate(parameters):
