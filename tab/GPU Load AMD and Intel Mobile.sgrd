@@ -15,10 +15,10 @@
   <beam sensorType="integer" color="0xffe20800" sensorName="Intel.0.Watt" hostName="127.0.0.1"/>
  </display>
  <display vLines="0" title="Intel Engines" vScroll="0" showUnit="0" column="1" stacked="0" hScale="6" hLines="1" columnSpan="1" class="FancyPlotter" labels="1" row="0" unit="" autoRange="1" rowSpan="1" svgBackground="" manualRange="0" vDistance="30" fontSize="8" version="1">
-  <beam sensorType="integer" color="0xff00a900" sensorName="Intel.0.rcs%" hostName="127.0.0.1"/>
-  <beam sensorType="integer" color="0xff0028a9" sensorName="Intel.0.bcs%" hostName="127.0.0.1"/>
-  <beam sensorType="integer" color="0xffa92928" sensorName="Intel.0.vcs%" hostName="127.0.0.1"/>
-  <beam sensorType="integer" color="0xff28a929" sensorName="Intel.0.vecs%" hostName="127.0.0.1"/>
+  <beam sensorType="integer" color="0xff00a900" sensorName="Intel.0.RCS.%" hostName="127.0.0.1"/>
+  <beam sensorType="integer" color="0xff0028a9" sensorName="Intel.0.BCS.%" hostName="127.0.0.1"/>
+  <beam sensorType="integer" color="0xffa92928" sensorName="Intel.0.VCS.%" hostName="127.0.0.1"/>
+  <beam sensorType="integer" color="0xff28a929" sensorName="Intel.0.VECS.%" hostName="127.0.0.1"/>
  </display>
  <display vLines="0" title="Radeon Engines" vScroll="0" showUnit="0" column="0" stacked="0" hScale="6" hLines="1" columnSpan="1" class="FancyPlotter" labels="1" row="2" unit="" autoRange="1" rowSpan="1" svgBackground="" manualRange="0" vDistance="30" fontSize="8" version="1">
   <beam sensorType="integer" color="0xff0057ae" regexpSensorName="AMD\..*\.ee" hostName="127.0.0.1"/>
