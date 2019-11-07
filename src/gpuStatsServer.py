@@ -2,6 +2,7 @@
 
 import subprocess
 import traceback
+import time
 
 ####################################################
 
@@ -135,51 +136,56 @@ class Amd:
 ####################################################
 
 class Nvidia:
-	def __init__(self, allGpu, mutex):
-		self.allGpu = allGpu
-		self.mutex = mutex
-		
-	def close(self):
-		try:
-			self.p.kill()
-		except:
-			pass
+    def __init__(self, allGpu, mutex):
+        self.allGpu = allGpu
+        self.mutex = mutex
 
-	def parseLine(self, line):
-		line=str(line)
-		line = line[2:-3]
-		
-		parameters = [s for s in line.split(',') if s]
-		
-		if not parameters[0].isdigit():
-			return
+    def close(self):
+        try:
+            self.p.kill()
+        except:
+            pass
 
-		if len(parameters) != 9:
-			print( "Nvidia parse line error: I am expecting 9 parameter but I got " + len(parameters) )
-			return
-		
-		gpuName = "Nvidia."+parameters[0]
-		header = ['temperature', 'utilization [%]', 'memory [%]', 'pstate', 'power.draw [W]', 'clocks.sm [MHz]', 'clocks.memory [MHz]', 'clocks.graphics [MHz]']
-		self.mutex.acquire()
-		try:
-			for index, parameter in enumerate(parameters):
-				value = [s for s in parameter.split(' ') if s]
-				self.allGpu[gpuName+"."+self.header[index]] = value[0]
-		finally:
-			self.mutex.release()
+    def parseLine(self, line):
+        line = str(line)
+        line = line[2:-3]
 
-	def run(self):
-		exe = ["nvidia-smi", "--query-gpu=index,temperature.gpu,utilization.gpu,utilization.memory,pstate,power.draw,clocks.sm,clocks.mem,clocks.gr", "--format=csv", '-l1']
-		try:
-			self.p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-			print('WARNING: NVIDIA is untested.')
-			while self.p.poll() is None:
-				line = self.p.stdout.readline()
-				self.parseLine(line)
-		except:
-			traceback.print_exc()
-		finally:
-			print('nvidia-smi process has died! probably is not installed, or need root')
+        parameters = [s for s in line.split(',') if s]
+        if len(parameters) == 0:
+            return
+        if not parameters[0].isdigit():
+            return
+
+        if len(parameters) != 7:
+            print(f"Nvidia parse line error: I am expecting 7 parameter but I got {len(parameters)}")
+            return
+
+        gpuName = "Nvidia." + parameters[0]
+        header = ['index', 'temperature', 'utilization(%)', 'memory(%)',
+                  'clocks.sm(MHz)', 'clocks.memory(MHz)', 'clocks.graphics(MHz)']
+        self.mutex.acquire()
+        try:
+            for index, parameter in enumerate(parameters):
+                value = [s for s in parameter.split(' ') if s]
+                self.allGpu[gpuName + "." + header[index]] = value[0]
+        finally:
+            self.mutex.release()
+
+    def run(self):
+        while True:
+            exe = ["nvidia-smi",
+                   "--query-gpu=index,temperature.gpu,utilization.gpu,utilization.memory,clocks.sm,clocks.mem,clocks.gr",
+                   "--format=csv", '-l1']
+            try:
+                self.p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                # print('WARNING: NVIDIA is untested.')
+                while self.p.poll() is None:
+                    line = self.p.stdout.readline()
+                    self.parseLine(line)
+            except:
+                traceback.print_exc()
+                print('nvidia-smi process has died! probably is not installed, or need root')
+            time.sleep(0.5)
 
 ####################################################
 #                      MAIN                        #
