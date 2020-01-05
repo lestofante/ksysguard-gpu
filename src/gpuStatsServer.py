@@ -1,4 +1,4 @@
-#!/bin/python3 -u
+#!/usr/bin/env python3
 
 import subprocess
 import traceback
@@ -11,11 +11,8 @@ class Intel:
 		self.mutex = mutex
 		self.header = []
 		
-	def close(self):
-		try:
-			self.p.kill()
-		except:
-			pass
+	def getCommand(self):
+		return ["intel_gpu_top", "-l"]
 	
 	def extrapolate(self, parameters):
 		for p in parameters:
@@ -40,6 +37,10 @@ class Intel:
 	
 	def parseLine(self, line):
 		line=str(line)
+		
+		if len(line) < 5:
+			return
+		
 		line = line[2:-3]
 		
 		parameters = [s for s in line.split(' ') if s]
@@ -47,12 +48,11 @@ class Intel:
 		if not parameters[0].isdigit():
 			if len(self.header) == 0:
 				self.extrapolate(parameters)
-				print("Intel parse extrapolated header list: " + str(self.header))
-			#print('ignored: ', parameters[0])
+				#print("Intel parse extrapolated header list: " + str(self.header))
 			return
 
 		if len(parameters) != len(self.header):
-			print( "Intel parse line error: I am expecting " + str(len(indexNames)) + " parameter but I got " + str(len(parameters)) )
+			print( "Intel parse line error: I am expecting " + str(len(indexNames)) + " parameter but I got " + str(len(parameters)) + " parsed line is " + line )
 			return
 		
 		gpuName = "Intel.0"
@@ -64,18 +64,6 @@ class Intel:
 			self.mutex.release()
 
 
-	def run(self):
-		exe = ["intel_gpu_top", "-l"]
-		try:
-			self.p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-			while self.p.poll() is None:
-				line = self.p.stdout.readline()
-				self.parseLine(line)
-		except:
-			traceback.print_exc()
-		finally:
-			print('intel_gpu_top process has died! probably is not installed, or need root')
-
 ####################################################
 
 class Amd:
@@ -83,15 +71,20 @@ class Amd:
 		self.allGpu = allGpu
 		self.mutex = mutex
 	
-	def close(self):
-		try:
-			self.p.kill()
-		except:
-			pass
+	def getCommand(self):
+		return ["radeontop", "-d-"]
 
 	def parseLine(self, line):
-		line=str(line)
-		line = line[20:-3] #remove b'timestamp and \n'
+		line=str(line)\
+		
+		if len(line) < 5:
+			return
+		
+		line = line[2:-3] # remove b' and \n'
+		line = line.split(':', 1) # remove timestamp
+		if len(line) != 2:
+			return
+		line = line[1]
 		
 		parameters = line.split(',')
 		gpuName = None
@@ -107,7 +100,7 @@ class Amd:
 					gpuName = 'AMD.'+keyValue[2]
 					self.allGpu[gpuName+"."+keyValue[1]] = keyValue[2]
 
-				else:
+				if gpuName is not None:
 					for val in keyValue:
 						if val[-1:] == "%":
 							self.allGpu[gpuName+"."+keyValue[1]+'.%'] = val[:-1] #remove . and %
@@ -119,47 +112,37 @@ class Amd:
 			self.mutex.release()
 
 
-	def run(self):
-		exe = ["radeontop", "-d-"]
-		try:
-			self.p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-			while self.p.poll() is None:
-				line = self.p.stdout.readline()
-				self.parseLine(line)
-		except:
-			traceback.print_exc()
-		finally:
-			print('radeontop process has died! probably is not installed, or need root')
-
-
 ####################################################
 
 class Nvidia:
 	def __init__(self, allGpu, mutex):
 		self.allGpu = allGpu
 		self.mutex = mutex
-		
-	def close(self):
-		try:
-			self.p.kill()
-		except:
-			pass
+
+	def getCommand(self):
+		return ["nvidia-smi", "--query-gpu=index,temperature.gpu,utilization.gpu,utilization.memory,pstate,power.draw,clocks.sm,clocks.mem,clocks.gr", "--format=csv", '-l1']
 
 	def parseLine(self, line):
-		line=str(line)
+		line = str(line)
+		
+		if len(line) < 5:
+			return
+		
 		line = line[2:-3]
 		
 		parameters = [s for s in line.split(',') if s]
 		
 		if not parameters[0].isdigit():
+			# this should be the header
 			return
-
+		
 		if len(parameters) != 9:
 			print( "Nvidia parse line error: I am expecting 9 parameter but I got " + len(parameters) )
 			return
 		
-		gpuName = "Nvidia."+parameters[0]
-		header = ['temperature', 'utilization [%]', 'memory [%]', 'pstate', 'power.draw [W]', 'clocks.sm [MHz]', 'clocks.memory [MHz]', 'clocks.graphics [MHz]']
+		gpuName = "Nvidia." + parameters[0]
+		header = ['temperature', 'utilization.%', 'memory.%', 'pstate', 'power.draw.w', 'clocks.sm.mhz', 'clocks.memory.mhz', 'clocks.graphics.mhz']
+		
 		self.mutex.acquire()
 		try:
 			for index, parameter in enumerate(parameters):
@@ -168,22 +151,53 @@ class Nvidia:
 		finally:
 			self.mutex.release()
 
-	def run(self):
-		exe = ["nvidia-smi", "--query-gpu=index,temperature.gpu,utilization.gpu,utilization.memory,pstate,power.draw,clocks.sm,clocks.mem,clocks.gr", "--format=csv", '-l1']
-		try:
-			self.p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-			print('WARNING: NVIDIA is untested.')
-			while self.p.poll() is None:
-				line = self.p.stdout.readline()
-				self.parseLine(line)
-		except:
-			traceback.print_exc()
-		finally:
-			print('nvidia-smi process has died! probably is not installed, or need root')
 
 ####################################################
 #                      MAIN                        #
 ####################################################
+
+class Runner:
+	def __init__(self, parser):
+		self.runnerAlive = True
+		self.p = None
+		self.parser = parser
+		self.thread = threading.Thread(target=self.run)
+		self.thread.start()
+	
+	def isAlive(self):
+		return self.thread.is_alive()
+	
+	def close(self):
+		self.runnerAlive = False
+		if self.p is not None:
+			try:
+				self.p.kill()
+			except:
+				traceback.print_exc()
+	
+	def run(self):
+		while (self.runnerAlive):
+			exe = self.parser.getCommand()
+			try:
+				self.p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+				print(exe[0] + ': found and running')
+				while self.p.poll() is None:
+					line = self.p.stdout.readline()
+					try:
+						self.parser.parseLine(line)
+					except:
+						print(exe[0] + ': exception while parsing the line, please report the bug ' + str(line))
+						traceback.print_exc()
+			except FileNotFoundError:
+				print(exe[0] + ': executable not found')
+				# stop this runner
+				self.runnerAlive = False
+			except:
+				traceback.print_exc()
+				print(exe[0] + ': process has died! Maybe need root')
+			time.sleep(1)
+		
+		print(exe[0] + ': terminated')
 
 def parseCommand(line, mutex):
 	line=line.strip()
@@ -219,16 +233,11 @@ parserIntel = Intel(allGpu, mutex)
 parserAmd = Amd(allGpu, mutex)
 parserNvidia = Nvidia(allGpu, mutex)
 
-t1 = threading.Thread(target=parserAmd.run)
-t1.start()
+t1 = Runner(parserIntel)
+t2 = Runner(parserAmd)
+t3 = Runner(parserNvidia)
 
-t2 = threading.Thread(target=parserIntel.run)
-t2.start()
-
-t3 = threading.Thread(target=parserNvidia.run)
-t3.start()
-
-#just mutex lol
+# we need to suincronize access to 'allGpu'
 mutex.acquire()
 while len(allGpu) == 0 and (t1.isAlive() or t2.isAlive() or t3.isAlive()):
 	mutex.release()
@@ -296,10 +305,10 @@ try:
 					# Remove message queue
 					del message_queues[s]
 finally:
-	print("server closed")
+	print("closing server")
 	server.close()
-	parserIntel.close()
-	parserAmd.close()
-	parserNvidia.close()
-	
+	t1.close()
+	t2.close()
+	t3.close()
+
 
