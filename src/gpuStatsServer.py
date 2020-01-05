@@ -102,7 +102,6 @@ class Amd:
 
 				if gpuName is not None:
 					for val in keyValue:
-						print(str(gpuName)+"."+str(keyValue[1])+'.%'+str(val))
 						if val[-1:] == "%":
 							self.allGpu[gpuName+"."+keyValue[1]+'.%'] = val[:-1] #remove . and %
 						elif val[-2:] == "mb":
