@@ -141,7 +141,7 @@ class Nvidia:
 			return
 		
 		gpuName = "Nvidia." + parameters[0]
-		header = ['temperature', 'utilization [%]', 'memory [%]', 'pstate', 'power.draw [W]', 'clocks.sm [MHz]', 'clocks.memory [MHz]', 'clocks.graphics [MHz]']
+		header = ['temperature', 'utilization.%', 'memory.%', 'pstate', 'power.draw.w', 'clocks.sm.mhz', 'clocks.memory.mhz', 'clocks.graphics.mhz']
 		
 		self.mutex.acquire()
 		try:
@@ -237,7 +237,7 @@ t1 = Runner(parserIntel)
 t2 = Runner(parserAmd)
 t3 = Runner(parserNvidia)
 
-#just mutex lol
+# we need to suincronize access to 'allGpu'
 mutex.acquire()
 while len(allGpu) == 0 and (t1.isAlive() or t2.isAlive() or t3.isAlive()):
 	mutex.release()
