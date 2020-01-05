@@ -123,7 +123,7 @@ class Nvidia:
 		return ["nvidia-smi", "--query-gpu=index,temperature.gpu,utilization.gpu,utilization.memory,pstate,power.draw,clocks.sm,clocks.mem,clocks.gr", "--format=csv", '-l1']
 
 	def parseLine(self, line):
-		line=str(line)
+		line = str(line)
 		
 		if len(line) < 5:
 			return
@@ -133,14 +133,16 @@ class Nvidia:
 		parameters = [s for s in line.split(',') if s]
 		
 		if not parameters[0].isdigit():
+			# this should be the header
 			return
-
+		
 		if len(parameters) != 9:
 			print( "Nvidia parse line error: I am expecting 9 parameter but I got " + len(parameters) )
 			return
 		
-		gpuName = "Nvidia."+parameters[0]
+		gpuName = "Nvidia." + parameters[0]
 		header = ['temperature', 'utilization [%]', 'memory [%]', 'pstate', 'power.draw [W]', 'clocks.sm [MHz]', 'clocks.memory [MHz]', 'clocks.graphics [MHz]']
+		
 		self.mutex.acquire()
 		try:
 			for index, parameter in enumerate(parameters):
@@ -156,34 +158,46 @@ class Nvidia:
 
 class Runner:
 	def __init__(self, parser):
+		self.runnerAlive = True
+		self.p = None
 		self.parser = parser
 		self.thread = threading.Thread(target=self.run)
 		self.thread.start()
 	
 	def isAlive(self):
-		return self.thread.isAlive()
+		return self.thread.is_alive()
 	
 	def close(self):
-		try:
-			self.p.kill()
-		except:
-			pass
+		self.runnerAlive = False
+		if self.p is not None:
+			try:
+				self.p.kill()
+			except:
+				traceback.print_exc()
 	
 	def run(self):
-		exe = self.parser.getCommand()
-		try:
-			self.p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-			while self.p.poll() is None:
-				line = self.p.stdout.readline()
-				try:
-					self.parser.parseLine(line)
-				except:
-					print(exe[0] + 'exception while parsing the line, please report the bug ' + str(line))
-					traceback.print_exc()
-		except:
-			traceback.print_exc()
-		finally:
-			print(exe[0] + ' process has died! probably is not installed, or need root')
+		while (self.runnerAlive):
+			exe = self.parser.getCommand()
+			try:
+				self.p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+				print(exe[0] + ': found and running')
+				while self.p.poll() is None:
+					line = self.p.stdout.readline()
+					try:
+						self.parser.parseLine(line)
+					except:
+						print(exe[0] + ': exception while parsing the line, please report the bug ' + str(line))
+						traceback.print_exc()
+			except FileNotFoundError:
+				print(exe[0] + ': executable not found')
+				# stop this runner
+				self.runnerAlive = False
+			except:
+				traceback.print_exc()
+				print(exe[0] + ': process has died! Maybe need root')
+			time.sleep(1)
+		
+		print(exe[0] + ': terminated')
 
 def parseCommand(line, mutex):
 	line=line.strip()
@@ -291,10 +305,10 @@ try:
 					# Remove message queue
 					del message_queues[s]
 finally:
-	print("server closed")
+	print("closing server")
 	server.close()
-	parserIntel.close()
-	parserAmd.close()
-	parserNvidia.close()
-	
+	t1.close()
+	t2.close()
+	t3.close()
+
 
