@@ -1,4 +1,4 @@
-#!/bin/python3 -u
+#!/usr/bin/env python3
 
 import subprocess
 import traceback
