@@ -118,6 +118,7 @@ class Nvidia:
 	def __init__(self, allGpu, mutex):
 		self.allGpu = allGpu
 		self.mutex = mutex
+		self.header = ['temperature', 'utilization.%', 'memory.%', 'pstate', 'power.draw.w', 'clocks.sm.mhz', 'clocks.memory.mhz', 'clocks.graphics.mhz']
 
 	def getCommand(self):
 		return ["nvidia-smi", "--query-gpu=index,temperature.gpu,utilization.gpu,utilization.memory,pstate,power.draw,clocks.sm,clocks.mem,clocks.gr", "--format=csv", '-l1']
@@ -141,7 +142,7 @@ class Nvidia:
 			return
 		
 		gpuName = "Nvidia." + parameters[0]
-		header = ['temperature', 'utilization.%', 'memory.%', 'pstate', 'power.draw.w', 'clocks.sm.mhz', 'clocks.memory.mhz', 'clocks.graphics.mhz']
+		
 		
 		self.mutex.acquire()
 		try:
