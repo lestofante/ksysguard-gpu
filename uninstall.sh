@@ -1,11 +1,11 @@
 #!/bin/sh
 
-echo "Disabling gpuStatsServer in systemd"
-systemctl disable gpuStatsServer
+echo "Disabling ksysguard-gpu in systemd"
+systemctl disable ksysguard-gpu
 
 echo "Deleting service and executable"
-rm /etc/systemd/system/gpuStatsServer.service
-rm /usr/bin/gpuStatsServer.py
+rm /etc/systemd/system/ksysguard-gpu.service
+rm /usr/bin/ksysguard-gpu.py
 
 
 
