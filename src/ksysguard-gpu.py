@@ -158,12 +158,14 @@ class Nvidia:
 ####################################################
 
 class Runner:
-	def __init__(self, parser):
+	def __init__(self, parser, clientConnectedEvent):
 		self.runnerAlive = True
 		self.p = None
 		self.parser = parser
+		self.clientConnectedEvent = clientConnectedEvent
 		self.thread = threading.Thread(target=self.run)
 		self.thread.start()
+		
 	
 	def isAlive(self):
 		return self.thread.is_alive()
@@ -177,18 +179,21 @@ class Runner:
 				traceback.print_exc()
 	
 	def run(self):
+		exe = self.parser.getCommand()
 		while (self.runnerAlive):
-			exe = self.parser.getCommand()
+			self.clientConnectedEvent.wait()
 			try:
 				self.p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 				print(exe[0] + ': found and running')
-				while self.p.poll() is None:
+				while self.p.poll() is None and self.clientConnectedEvent.is_set():
 					line = self.p.stdout.readline()
 					try:
 						self.parser.parseLine(line)
 					except:
 						print(exe[0] + ': exception while parsing the line, please report the bug ' + str(line))
 						traceback.print_exc()
+				self.p.kill()
+				time.sleep(1)
 			except FileNotFoundError:
 				print(exe[0] + ': executable not found')
 				# stop this runner
@@ -196,6 +201,8 @@ class Runner:
 			except:
 				traceback.print_exc()
 				print(exe[0] + ': process has died! Maybe need root')
+			
+			print(exe[0] + ': process stopped')
 			time.sleep(1)
 		
 		print(exe[0] + ': terminated')
@@ -234,9 +241,13 @@ parserIntel = Intel(allGpu, mutex)
 parserAmd = Amd(allGpu, mutex)
 parserNvidia = Nvidia(allGpu, mutex)
 
-t1 = Runner(parserIntel)
-t2 = Runner(parserAmd)
-t3 = Runner(parserNvidia)
+clientConnectedEvent = threading.Event()
+
+clientConnectedEvent.set()
+
+t1 = Runner(parserIntel, clientConnectedEvent)
+t2 = Runner(parserAmd, clientConnectedEvent)
+t3 = Runner(parserNvidia, clientConnectedEvent)
 
 # we need to suincronize access to 'allGpu'
 mutex.acquire()
@@ -245,6 +256,8 @@ while len(allGpu) == 0 and (t1.isAlive() or t2.isAlive() or t3.isAlive()):
 	time.sleep(0.5)
 	mutex.acquire()
 mutex.release()
+
+clientConnectedEvent.clear()
 
 if not t1.isAlive() and not t2.isAlive() and not t3.isAlive():
 	print("No data source is alive")
@@ -271,6 +284,12 @@ try:
 
 
 	while inputs:
+		#if at least one client is connected
+		if len(inputs) > 1:
+			clientConnectedEvent.set()
+		else:
+			clientConnectedEvent.clear()
+		
 		# Wait for at least one of the sockets to be ready for processing
 		readable, writable, exceptional = select.select(inputs, [], [])
 		
