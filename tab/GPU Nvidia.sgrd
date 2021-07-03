@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE KSysGuardWorkSheet>
+<WorkSheet interval="0.5" locked="0" rows="3" columns="1" title="GPUs">
+ <host name="127.0.0.1" command="" port="3112" shell=""/>
+ <display columnSpan="1" rowSpan="1" column="0" labels="1" manualRange="0" vLines="0" title="Utilization GPU1" autoRange="1" fontSize="8" hLines="1" hScale="6" unit="" version="1" showUnit="0" class="FancyPlotter" svgBackground="" vScroll="0" vDistance="30" stacked="0" row="0">
+  <beam sensorName="Nvidia.0.utilization.%" hostName="127.0.0.1" sensorType="integer" color="0xff0057ae"/>
+  <beam sensorName="Nvidia.0.memory.%" hostName="127.0.0.1" sensorType="integer" color="0xffe20800"/>
+ </display>
+ <display columnSpan="1" rowSpan="1" lowlimitactive="0" alarmColor="0xffff0000" column="0" normalColor="0xff888888" title="Nvidia.0.fan.speed" fontSize="8" uplimit="0" uplimitactive="0" lowlimit="0" max="100" unit="" backgroundColor="0xffffffff" showUnit="0" class="DancingBars" min="0" row="1">
+  <beam sensorDescr="Nvidia.0.fan.speed" sensorName="Nvidia.0.fan.speed" hostName="127.0.0.1" sensorType="integer"/>
+  <beam sensorDescr="Nvidia.0.power.draw.w" sensorName="Nvidia.0.power.draw.w" hostName="127.0.0.1" sensorType="integer"/>
+  <beam sensorDescr="Nvidia.0.temperature" sensorName="Nvidia.0.temperature" hostName="127.0.0.1" sensorType="integer"/>
+ </display>
+ <display columnSpan="1" rowSpan="1" column="0" labels="1" manualRange="1" vLines="0" title="Clock Rate GPU1" autoRange="1" fontSize="8" hLines="1" hScale="6" max="25000" unit="" version="1" showUnit="0" class="FancyPlotter" min="0" svgBackground="" vScroll="0" vDistance="30" stacked="0" row="2">
+  <beam sensorName="Nvidia.0.clocks.memory.mhz" hostName="127.0.0.1" sensorType="integer" color="0xffe20800"/>
+  <beam sensorName="Nvidia.0.clocks.graphics.mhz" hostName="127.0.0.1" sensorType="integer" color="0xfff3c300"/>
+ </display>
+</WorkSheet>
