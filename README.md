@@ -29,6 +29,8 @@ Also the script will use your TCP port 3112, so you could also use it to check o
 cd ksysguard-gpu
 * ./install.sh
 * start ksysguard
+* File -> New Tab -> configure the details -> click Ok
+* Click the new tab
 * File -> Monitor remote machine, in the windows that will appear you will see the following:  
 ** Host: 127.0.0.1  
 ** Connection type: daemon  
