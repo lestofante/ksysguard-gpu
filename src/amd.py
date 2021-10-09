@@ -12,7 +12,8 @@ class Amd:
         if len(line) < 5:
             return
         
-        line = line[2:-3] # remove b' and \n'
+        #line = line[2:-3] # remove b' and \n'
+        line = line.strip()
         line = line.split(':', 1) # remove timestamp
         if len(line) != 2:
             return
