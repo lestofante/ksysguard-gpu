@@ -31,4 +31,3 @@ class Nvidia:
             for index, parameter in enumerate(parameters):
                 value = [s for s in parameter.split(' ') if s]
                 self.allGpu[gpuName+"."+self.header[index]] = value[0]
-0, 54, 1 %, 3 %, P5, 27.34 W, 1139 MHz, 810 MHz, 1139 MHz\n'
