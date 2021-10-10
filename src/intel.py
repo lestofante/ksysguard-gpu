@@ -22,12 +22,14 @@ class Intel:
                 self.header += ['gpu', 'pkg']
             
             if p == 'IMC':
-                self.header += [' rd', 'wr']
+                self.header += ['rd', 'wr']
             
             possibleDivider = p.find('/')
+            
             if possibleDivider != -1:
-                name = p[:possibleDivider]
-                self.header += [name+'.%', name+'.se', name+'.wa']
+                if p[possibleDivider+1:].isdigit():
+                    name = p[:possibleDivider]# + '.' + p[possibleDivider+1:]
+                    self.header += [name+'.%', name+'.se', name+'.wa']
 
     def parseLine(self, line):
         line=str(line)
