@@ -101,11 +101,14 @@ t2 = Runner(parserAmd, clientConnectedEvent)
 t3 = Runner(parserNvidia, clientConnectedEvent)
 
 # we need to sincronize access to 'allGpu'
+print("Waiting for a data source to produce valid data")
 gpuFount = 0
 while len(allGpu) == 0 and (t1.isAlive() or t2.isAlive() or t3.isAlive()):
     with mutex:
         gpuFount = len(allGpu)
     time.sleep(0.5)
+
+print("Got valid data, proceeding")
 
 clientConnectedEvent.clear()
 
@@ -120,7 +123,7 @@ server.setblocking(0)
 
 try:
     # Bind the socket to the port
-    server_address = ('localhost', 3112)
+    server_address = ('0.0.0.0', 3112)
     print ('starting up on %s port %s' % server_address)
     server.bind(server_address)
 
