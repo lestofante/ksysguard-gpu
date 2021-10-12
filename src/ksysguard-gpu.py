@@ -1,8 +1,15 @@
 #!/usr/bin/env python3
 
+
 import subprocess
 import traceback
 import intel, amd, nvidia
+
+import select
+import socket
+import sys
+import threading
+import time
 ####################################################
 
 class Runner:
@@ -55,8 +62,9 @@ class Runner:
         
         print(exe[0] + ': terminated')
 
-def parseCommand(line, mutex):
+def parseCommand(line, mutex, allGpu):
     line=line.strip()
+    print("line: "+line)
     answer = ""
     with mutex:
         try:
@@ -68,7 +76,8 @@ def parseCommand(line, mutex):
             else:
                 answerValue = allGpu.get(line, -1)
                 answer += (str(answerValue)+'\n')
-        except:
+        except e:
+            print("error: "+str(e))
             #ignore all exception
             pass
 
@@ -78,108 +87,106 @@ def parseCommand(line, mutex):
 ####################################################
 #                      MAIN                        #
 ####################################################
+def main():
 
-import select
-import socket
-import sys
-import threading
-import time
+    allGpu = {}
+    mutex = threading.Lock()
 
-allGpu = {}
-mutex = threading.Lock()
+    parserIntel = intel.Intel(allGpu, mutex)
+    parserAmd = amd.Amd(allGpu, mutex)
+    parserNvidia = nvidia.Nvidia(allGpu, mutex)
 
-parserIntel = intel.Intel(allGpu, mutex)
-parserAmd = amd.Amd(allGpu, mutex)
-parserNvidia = nvidia.Nvidia(allGpu, mutex)
+    clientConnectedEvent = threading.Event()
 
-clientConnectedEvent = threading.Event()
+    clientConnectedEvent.set()
 
-clientConnectedEvent.set()
+    t1 = Runner(parserIntel, clientConnectedEvent)
+    t2 = Runner(parserAmd, clientConnectedEvent)
+    t3 = Runner(parserNvidia, clientConnectedEvent)
 
-t1 = Runner(parserIntel, clientConnectedEvent)
-t2 = Runner(parserAmd, clientConnectedEvent)
-t3 = Runner(parserNvidia, clientConnectedEvent)
+    # we need to sincronize access to 'allGpu'
+    print("Waiting for a data source to produce valid data")
+    gpuFount = 0
+    while len(allGpu) == 0 and (t1.isAlive() or t2.isAlive() or t3.isAlive()):
+        with mutex:
+            gpuFount = len(allGpu)
+        time.sleep(0.5)
 
-# we need to sincronize access to 'allGpu'
-print("Waiting for a data source to produce valid data")
-gpuFount = 0
-while len(allGpu) == 0 and (t1.isAlive() or t2.isAlive() or t3.isAlive()):
-    with mutex:
-        gpuFount = len(allGpu)
-    time.sleep(0.5)
+    print("Got valid data, proceeding")
 
-print("Got valid data, proceeding")
+    clientConnectedEvent.clear()
 
-clientConnectedEvent.clear()
+    if not t1.isAlive() and not t2.isAlive() and not t3.isAlive():
+        print("No data source is alive")
+        exit (-1)
 
-if not t1.isAlive() and not t2.isAlive() and not t3.isAlive():
-    print("No data source is alive")
-    exit (-1)
+    # Create a TCP/IP socket
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server.setblocking(0)
 
-# Create a TCP/IP socket
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-server.setblocking(0)
+    try:
+        # Bind the socket to the port
+        server_address = ('0.0.0.0', 3112)
+        print ('starting up on %s port %s' % server_address)
+        server.bind(server_address)
 
-try:
-    # Bind the socket to the port
-    server_address = ('0.0.0.0', 3112)
-    print ('starting up on %s port %s' % server_address)
-    server.bind(server_address)
+        # Listen for incoming connections
+        server.listen(5) 
 
-    # Listen for incoming connections
-    server.listen(5) 
+        # Sockets from which we expect to read
+        inputs = [ server ]
 
-    # Sockets from which we expect to read
-    inputs = [ server ]
-
-    message_queues = {}
+        message_queues = {}
 
 
-    while inputs:
-        #if at least one client is connected
-        if len(inputs) > 1:
-            clientConnectedEvent.set()
-        else:
-            clientConnectedEvent.clear()
-        
-        # Wait for at least one of the sockets to be ready for processing
-        readable, writable, exceptional = select.select(inputs, [], [])
-        
-        # Handle inputs
-        for s in readable:
-            if s is server:
-                # A "readable" server socket is ready to accept a connection
-                connection, client_address = s.accept()
-                print ('new connection from', client_address)
-                connection.setblocking(0)
-                inputs.append(connection)
-                message_queues[connection] = ""
-                
-                connection.send(b"ksysguardd 1.2.0\nksysguardd> ")
+        while inputs:
+            #if at least one client is connected
+            if len(inputs) > 1:
+                clientConnectedEvent.set()
             else:
-                # A "readable" cliet socket has sent us some data
-                data = s.recv(1024)
-                if data:
-                    data = data.decode("utf-8", "strict")
-                    message_queues[s] += data
-                    lines = message_queues[s].split('\n')
-                    linesNumber = len(lines)
-                    for i in range(0, linesNumber-1):
-                        answer = parseCommand(lines[i], mutex)
-                        s.send(answer.encode('utf-8'))
-                    message_queues[s] = lines[linesNumber-1]
+                clientConnectedEvent.clear()
+            
+            # Wait for at least one of the sockets to be ready for processing
+            readable, writable, exceptional = select.select(inputs, [], [])
+            
+            # Handle inputs
+            for s in readable:
+                if s is server:
+                    # A "readable" server socket is ready to accept a connection
+                    connection, client_address = s.accept()
+                    print ('new connection from', client_address)
+                    connection.setblocking(0)
+                    inputs.append(connection)
+                    message_queues[connection] = ""
+                    
+                    connection.send(b"ksysguardd 1.2.0\nksysguardd> ")
                 else:
-                    # Interpret empty result as closed connection
-                    print ('client disconnected: ', client_address)
-                    # Stop listening for input on the connection
-                    inputs.remove(s)
-                    s.close()
-                    # Remove message queue
-                del message_queues[s]
-finally:
-    print("closing server")
-    server.close()
-    t1.close()
-    t2.close()
-    t3.close()
+                    # A "readable" cliet socket has sent us some data
+                    data = s.recv(1024)
+                    if data:
+                        data = data.decode("utf-8", "strict")
+                        message_queues[s] += data
+                        lines = message_queues[s].split('\n')
+                        linesNumber = len(lines)
+                        for i in range(0, linesNumber-1):
+                            answer = parseCommand(lines[i], mutex, allGpu)
+                            s.send(answer.encode('utf-8'))
+                        message_queues[s] = lines[linesNumber-1]
+                    else:
+                        # Interpret empty result as closed connection
+                        print ('client disconnected: ', client_address)
+                        # Stop listening for input on the connection
+                        inputs.remove(s)
+                        s.close()
+                        # Remove message queue
+                        del message_queues[s]
+    finally:
+        print("closing server")
+        server.close()
+        t1.close()
+        t2.close()
+        t3.close()
+
+if __name__ == '__main__':
+    main()

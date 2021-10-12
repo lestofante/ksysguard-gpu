@@ -3,7 +3,7 @@ Description=Collect GPU stats
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/ksysguard-gpu.py
+ExecStart=/usr/bin/ksysguard-gpu.zip
 Restart=on-failure
 
 [Install]
