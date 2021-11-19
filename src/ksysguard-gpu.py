@@ -64,7 +64,6 @@ class Runner:
 
 def parseCommand(line, mutex, allGpu):
     line=line.strip()
-    print("line: "+line)
     answer = ""
     with mutex:
         try:
