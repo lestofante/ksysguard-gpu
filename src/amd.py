@@ -7,10 +7,13 @@ class Amd:
         return ["radeontop", "-d-"]
 
     def parseLine(self, line):
-        line=str(line)\
+        line=str(line)
         
         if len(line) < 5:
             return
+        
+        #remove b''
+        line = line[2:-3]
         
         line = line.strip()
         line = line.split(':', 1) # remove timestamp
