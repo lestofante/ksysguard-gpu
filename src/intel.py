@@ -37,6 +37,9 @@ class Intel:
         if len(line) < 5:
             return
         
+        #remove b''
+        line = line[2:-3]
+        
         line = line.strip()
         
         parameters = [s for s in line.split(' ') if s]
