@@ -5,7 +5,5 @@ systemctl disable ksysguard-gpu
 
 echo "Deleting service and executable"
 rm /etc/systemd/system/ksysguard-gpu.service
-rm /usr/bin/ksysguard-gpu.py
-
-
+rm /usr/bin/ksysguard-gpu.zip
 

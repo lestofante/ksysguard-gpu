@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
 
-
 import subprocess
 import traceback
-import intel, amd, nvidia
 
 import select
 import socket
 import sys
 import threading
 import time
+
+import intel
+import amd
+import nvidia
+
+
 ####################################################
 
 class Runner:
@@ -77,17 +81,18 @@ def parseCommand(line, mutex, allGpu):
                 answer += (str(answerValue)+'\n')
         except e:
             print("error: "+str(e))
-            #ignore all exception
+            # Ignore all exceptions
             pass
 
     answer += 'ksysguardd> '
     return answer
 
+
 ####################################################
 #                      MAIN                        #
 ####################################################
-def main():
 
+def main():
     allGpu = {}
     mutex = threading.Lock()
 
@@ -99,23 +104,23 @@ def main():
 
     clientConnectedEvent.set()
 
-    t1 = Runner(parserIntel, clientConnectedEvent)
-    t2 = Runner(parserAmd, clientConnectedEvent)
-    t3 = Runner(parserNvidia, clientConnectedEvent)
+    t_INTEL = Runner(parserIntel, clientConnectedEvent)
+    t_AMD = Runner(parserAmd, clientConnectedEvent)
+    t_NVIDIA = Runner(parserNvidia, clientConnectedEvent)
 
-    # we need to sincronize access to 'allGpu'
+    # Synchronize access to 'allGpu'
     print("Waiting for a data source to produce valid data")
-    gpuFount = 0
-    while len(allGpu) == 0 and (t1.isAlive() or t2.isAlive() or t3.isAlive()):
+    nbGpuFound = 0
+    while len(allGpu) == 0 and (t_INTEL.isAlive() or t_AMD.isAlive() or t_NVIDIA.isAlive()):
         with mutex:
-            gpuFount = len(allGpu)
+            nbGpuFound = len(allGpu)
         time.sleep(0.5)
 
     print("Got valid data, proceeding")
 
     clientConnectedEvent.clear()
 
-    if not t1.isAlive() and not t2.isAlive() and not t3.isAlive():
+    if not t_INTEL.isAlive() and not t_AMD.isAlive() and not t_NVIDIA.isAlive():
         print("No data source is alive")
         exit (-1)
 
@@ -126,21 +131,21 @@ def main():
 
     try:
         # Bind the socket to the port
-        server_address = ('0.0.0.0', 3112)
-        print ('starting up on %s port %s' % server_address)
+        server_address = ('127.0.0.1', 9876)
+        print('Starting up on %s port %s' % server_address)
         server.bind(server_address)
 
         # Listen for incoming connections
         server.listen(5) 
 
         # Sockets from which we expect to read
-        inputs = [ server ]
+        inputs = [server]
 
         message_queues = {}
 
 
         while inputs:
-            #if at least one client is connected
+            # If at least one client is connected
             if len(inputs) > 1:
                 clientConnectedEvent.set()
             else:
@@ -154,14 +159,14 @@ def main():
                 if s is server:
                     # A "readable" server socket is ready to accept a connection
                     connection, client_address = s.accept()
-                    print ('new connection from', client_address)
+                    print('New connection from', client_address)
                     connection.setblocking(0)
                     inputs.append(connection)
                     message_queues[connection] = ""
                     
                     connection.send(b"ksysguardd 1.2.0\nksysguardd> ")
                 else:
-                    # A "readable" cliet socket has sent us some data
+                    # A "readable" client socket has sent us some data
                     data = s.recv(1024)
                     if data:
                         data = data.decode("utf-8", "strict")
@@ -174,18 +179,18 @@ def main():
                         message_queues[s] = lines[linesNumber-1]
                     else:
                         # Interpret empty result as closed connection
-                        print ('client disconnected: ', client_address)
+                        print('Client disconnected: ', client_address)
                         # Stop listening for input on the connection
                         inputs.remove(s)
                         s.close()
                         # Remove message queue
                         del message_queues[s]
     finally:
-        print("closing server")
+        print("Closing server")
         server.close()
-        t1.close()
-        t2.close()
-        t3.close()
+        t_INTEL.close()
+        t_AMD.close()
+        t_NVIDIA.close()
 
 if __name__ == '__main__':
     main()

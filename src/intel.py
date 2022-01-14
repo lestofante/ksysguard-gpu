@@ -10,10 +10,10 @@ class Intel:
     def extrapolate(self, parameters):
         for p in parameters:
             if p == 'Freq':
-                self.header += ['fReq', 'fAtt']
+                self.header += ['fReq', 'fAct']
             
             if p == 'IRQ':
-                self.header += ['irq/s']
+                self.header += ['irq.second']
             
             if p == 'RC6':
                 self.header += ['rc6.%']
@@ -43,15 +43,21 @@ class Intel:
         line = line.strip()
         
         parameters = [s for s in line.split(' ') if s]
+        parameters = parameters[:-1]           # Remove trailing '\n'
+        if parameters[0] == "b'":
+            parameters = parameters[1:]        # Remove preceding b'
+        if len(parameters[0]) == 6:            # Frequency is a 4-digit number, preceded by b'
+            parameters[0] = parameters[0][2:]  # Remove preceding b' leaving only the integer
         
         if not parameters[0].isdigit():
             if len(self.header) == 0:
                 self.extrapolate(parameters)
-                #print("Intel parse extrapolated header list: " + str(self.header))
+                # print("Intel parse extrapolated header list: " + str(self.header))
             return
 
         if len(parameters) != len(self.header):
-            print( "Intel parse line error: I am expecting " + str(len(self.header)) + " parameter but I got " + str(len(parameters)) + " parsed line is " + line )
+            print("Intel parse line error: I am expecting " + str(len(self.header)) + " parameters but I got "
+                  + str(len(parameters)) + "! Parsed line is\n" + line )
             return
         
         gpuName = "Intel.0"
