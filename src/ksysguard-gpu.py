@@ -36,17 +36,21 @@ class Runner:
     def run(self):
         exe = self.parser.getCommand()
         while (self.runnerAlive):
+            print(exe[0] + ': waiting for client')
             self.clientConnectedEvent.wait()
             try:
                 self.p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                 print(exe[0] + ': found and running')
                 while self.p.poll() is None and self.clientConnectedEvent.is_set():
-                    line = self.p.stdout.readline()
-                    try:
-                        self.parser.parseLine(line)
-                    except:
-                        print(exe[0] + ': exception while parsing the line, please report the bug ' + str(line))
-                        traceback.print_exc()
+                    line = str(self.p.stdout.readline())
+                    if len(line) >= 5:
+                        #remove b''
+                        line = line[2:-3]
+                        try:
+                            self.parser.parseLine(line)
+                        except:
+                            print(exe[0] + ': exception while parsing the line, please report the bug ' + str(line))
+                            traceback.print_exc()
                 self.p.kill()
                 time.sleep(1)
             except FileNotFoundError:

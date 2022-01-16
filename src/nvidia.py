@@ -8,14 +8,8 @@ class Nvidia:
         return ["nvidia-smi", "--query-gpu=index,temperature.gpu,utilization.gpu,utilization.memory,fan.speed,pstate,power.draw,clocks.sm,clocks.mem,clocks.gr", "--format=csv", '-l 1']
 
     def parseLine(self, line):
-        line = str(line)
-        
-        if len(line) < 5:
-            return
-        
-        #remove b''
-        line = line[2:-3]
-        
+        #remove \n
+        line = line[:-1]
         line = line.strip()
         
         parameters = [s for s in line.split(',') if s]

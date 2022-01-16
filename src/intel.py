@@ -32,14 +32,8 @@ class Intel:
                     self.header += [name+'.%', name+'.se', name+'.wa']
 
     def parseLine(self, line):
-        line=str(line)
-        
-        if len(line) < 5:
-            return
-        
-        #remove b''
-        line = line[2:-3]
-        
+        #remove \n
+        line = line[:-1]
         line = line.strip()
         
         parameters = [s for s in line.split(' ') if s]
@@ -51,7 +45,9 @@ class Intel:
             return
 
         if len(parameters) != len(self.header):
-            print( "Intel parse line error: I am expecting " + str(len(self.header)) + " parameter but I got " + str(len(parameters)) + " parsed line is " + line )
+            print( "Intel parse line error: I am expecting " + str(len(self.header)) + " parameter but I got " + str(len(parameters)) + " parsed line is '" + line+"'" )
+            for asd in parameters:
+                print( "asd " + asd )
             return
         
         gpuName = "Intel.0"
