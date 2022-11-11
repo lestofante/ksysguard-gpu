@@ -5,7 +5,7 @@ class Nvidia:
         self.header = ['index', 'temperature', 'utilization.%', 'memory.%', 'fan.speed', 'pstate', 'power.draw.w', 'clocks.sm.mhz', 'clocks.memory.mhz', 'clocks.graphics.mhz']
 
     def getCommand(self):
-        return ["nvidia-smi", "--query-gpu=index,temperature.gpu,utilization.gpu,utilization.memory,fan.speed,pstate,power.draw,clocks.sm,clocks.mem,clocks.gr", "--format=csv", '-l 1']
+        return ["nvidia-smi", "--query-gpu=index,temperature.gpu,utilization.gpu,utilization.memory,fan.speed,pstate,power.draw,clocks.sm,clocks.mem,clocks.gr", "--format=csv", '--loop=1']
 
     def parseLine(self, line):
         line = str(line)

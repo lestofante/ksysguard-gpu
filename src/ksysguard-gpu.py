@@ -155,11 +155,14 @@ try:
                 
                 connection.send(b"ksysguardd 1.2.0\nksysguardd> ")
             else:
-                # A "readable" cliet socket has sent us some data
+                # A "readable" client socket has sent us some data
                 data = s.recv(1024)
                 if data:
                     data = data.decode("utf-8", "strict")
-                    message_queues[s] += data
+                    if s in message_queues.keys():
+                        message_queues[s] += data
+                    else:
+                        message_queues[s] = data
                     lines = message_queues[s].split('\n')
                     linesNumber = len(lines)
                     for i in range(0, linesNumber-1):
@@ -180,3 +183,4 @@ finally:
     t1.close()
     t2.close()
     t3.close()
+
