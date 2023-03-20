@@ -16,7 +16,11 @@ class Nvidia:
         line = line[2:-3]
         
         parameters = [s for s in line.split(',') if s]
-        
+
+        # Fixes possible nvidia-smi cmd errors # 29
+        if len(parameters) == 0:
+            return
+
         if not parameters[0].isdigit():
             # this should be the header
             return
