@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "Coping service and executable"
+echo "Copying service and executable"
 cp systemd-unit/ksysguard-gpu.service /etc/systemd/system/ksysguard-gpu.service
 mkdir /usr/share/ksysguard-gpu/
 cp src/amd.py src/nvidia.py src/intel.py src/ksysguard-gpu.py /usr/share/ksysguard-gpu/
